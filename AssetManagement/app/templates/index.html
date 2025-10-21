@@ -1,11 +1,36 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Tài Sản</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% extends "base.html" %}
+
+{% block content %}
     <style>
+        /* --- Phân trang --- */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .pagination a,
+        .pagination span {
+            border: 1px solid #d1d5db;
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: #3b82f6;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .pagination a:hover {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .pagination .active span {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
         .pagination {
             display: flex !important;
             justify-content: center;
@@ -40,317 +65,234 @@
             background-color: #3498db;
             color: white;
         }
-        .search-bar {
-            display: flex;
-            gap: 8px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .search-input, .search-select {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            height: 36px;
-        }
-
-        .search-select {
-            flex: 0 0 auto;  /* Không cho nó giãn hết */
-        }
-
-        .search-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .form-grid-3 {
-            display: flex;
-            gap: 20px;
-        }
-
-        .form-column {
-            flex: 1;
-            background: #fff;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .image-preview {
-            margin-top: 10px;
-            text-align: center;
-            border: 1px dashed #ccc;
-            padding: 10px;
-            border-radius: 4px;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
-        }
-
-        .button-group {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .submit-btn, .update-btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .submit-btn {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .update-btn {
-            background-color: #3498db;
-            color: white;
-        }
-
-        .submit-btn:hover, .update-btn:hover {
-            opacity: 0.9;
-        }
     </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Quản Lý Tài Sản</h1>
-    </div>
-    <div class="search-container">
-        <form action="/filter" method="GET" class="search-bar">            <input type="text" name="search" placeholder="🔍 Tìm kiếm mã hoặc tên..." value="{{ search_query }}" class="search-input">
+    <h1 class="text-2xl font-bold mb-4">Danh sách tài sản</h1>
 
-            <select name="status" class="search-select" style="max-width: 120px;">
-                <option value="">Trạng thái</option>
-                <option value="Cấp phát" {% if filter_status == 'Cấp phát' %}selected{% endif %}>Cấp phát</option>
-                <option value="Sử dụng" {% if filter_status == 'Sử dụng' %}selected{% endif %}>Sử dụng</option>
-                <option value="Hỏng" {% if filter_status == 'Hỏng' %}selected{% endif %}>Hỏng</option>
-            </select>
+    <!-- Form tìm kiếm và lọc -->
+    <!-- 🔍 Thanh tìm kiếm hiện đại -->
+    <form action="/filter" method="get"
+        class="flex flex-wrap items-center gap-3 bg-white shadow-sm p-4 rounded-lg border border-gray-200">
+        
+        <!-- Tìm kiếm tên hoặc mã -->
+        <div class="flex items-center border border-gray-300 rounded-md px-3 py-2 flex-grow max-w-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.65 5.65a7.5 7.5 0 016 12.9z" />
+            </svg>
+            <input type="text" name="search" value="{{ search_query }}"
+                placeholder="Tìm kiếm mã hoặc tên..."
+                class="focus:outline-none w-full text-sm bg-transparent">
+        </div>
 
-            <input type="date" name="start_date" value="{{ filter_start_date }}" class="search-input" style="max-width: 150px;" placeholder="Từ ngày">
+        <!-- Lọc theo trạng thái -->
+        <select name="status"
+                class="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+            <option value="">Trạng thái</option>
+            <option value="Sẵn sàng" {{ "selected" if filter_status == "Sẵn sàng" }}>Sẵn sàng</option>
+            <option value="Đang sử dụng" {{ "selected" if filter_status == "Đang sử dụng" }}>Đang sử dụng</option>
+            <option value="Hỏng" {{ "selected" if filter_status == "Hỏng" }}>Hỏng</option>
+        </select>
 
-            <!-- <input type="date" name="end_date" value="{{ filter_end_date }}" class="search-input" style="max-width: 150px;" placeholder="Đến ngày"> -->
+        <!-- Nút lọc -->
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-md shadow-sm transition">
+            🔎 Lọc
+        </button>
+    </form>
 
-            <!-- <input type="text" name="nguoi_su_dung" placeholder="Người sử dụng" value="{{ filter_nguoi_su_dung }}" class="search-input" style="max-width: 150px;"> -->
-
-            <button type="submit" class="search-btn">Lọc</button>
-        </form>
-    </div>
-
-    <div class="form-container">
-        <form action="/add" method="POST" enctype="multipart/form-data" id="asset-form">
-            <div class="form-grid-3">
-                <!-- Cột 1 -->
-                <div class="form-column">
-                    <div class="form-group">
-                        <label>Mã tài sản</label>
-                        <input type="text" name="ma_tai_san" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tên tài sản</label>
-                        <input type="text" name="ten_tai_san" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày vào sổ</label>
-                        <input type="date" name="ngay_vao_so" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select name="trang_thai" required>
-                            <option value="">Chọn trạng thái</option>
-                            <option value="Cấp phát">Cấp phát</option>
-                            <option value="Sử dụng">Sử dụng</option>
-                            <option value="Hỏng">Hỏng</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Serial No.</label>
-                        <input type="text" name="serial" required>
-                    </div>
-                </div>
-
-                <!-- Cột 2 -->
-                <div class="form-column">
-                    <div class="form-group">
-                        <label>Giá trị</label>
-                        <input type="number" step="0.01" name="gia_tri" oninput="formatGiaTri()">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày bảo trì</label>
-                        <input type="date" name="ngay_bao_tri">
-                    </div>
-                    <div class="form-group">
-                        <label>Hãng sản xuất</label>
-                        <input type="text" name="hang_sx">
-                    </div>
-                    <div class="form-group">
-                        <label>Bộ phận</label>
-                        <input type="text" name="bo_phan">
-                    </div>
-                    <div class="form-group">
-                        <label>Người sử dụng</label>
-                        <input type="text" name="nguoi_su_dung">
-                    </div>
-                </div>
-
-                <!-- Cột 3 (Upload ảnh + Preview) -->
-                <div class="form-column">
-                    <div class="form-group">
-                        <label>Nhóm tài sản</label>
-                        <input type="text" name="nhom_tai_san">
-                    </div>
-                    <div class="form-group">
-                        <label>Ảnh đính kèm</label>
-                        <input type="file" name="image" accept="image/*" onchange="previewImage(event)">
-                    </div>
-                    <div class="image-preview">
-                        <img id="preview" src="" alt="Preview sẽ hiển thị ở đây">
-                    </div>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="submit-btn">Thêm mới</button>
-                <button type="submit" class="update-btn" id="update-btn" style="display: none;">Cập nhật</button>
-            </div>
-        </form>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
-
-    <div class="table-actions">
-        <a href="{{ url_for('export_assets') }}" class="btn export">Xuất Báo Cáo</a>
-        <a href="{{ url_for('export_excel') }}" class="btn export">Xuất Excel</a>
-    </div>
-    <table id="asset-table">
-        <tr>
-            <th>Mã tài sản</th>
-            <th>Tên tài sản</th>
-            <th>Ngày vào sổ</th>
-            <th>Trạng thái</th>
-            <th>Serial No.</th>
-            <th>Hành động</th>
+    <!-- Bảng tài sản -->
+    <table id="asset-table" class="w-full bg-white shadow-md rounded">
+        <tr class="border-b-4">
+            <th class="px-4 py-2 border-r">Mã tài sản</th>
+            <th class="px-4 py-2 border-r">Tên tài sản</th>
+            <th class="px-4 py-2 border-r">Ngày vào sổ</th>
+            <th class="px-4 py-2 border-r">Trạng thái</th>
+            <th class="px-4 py-2 border-r">Serial</th>
+            <th class="px-4 py-2 border-r">Người sử dụng</th>
+            <th class="px-4 py-2 border-r">Bộ phận</th>
+            <th class="px-4 py-2 text-center">Hành động</th>
         </tr>
-        {% for asset in assets %}
-        <tr data-id="{{ asset.id }}" style="cursor: pointer;">
-            <td data-label="Mã tài sản">{{ asset.ma_tai_san }}</td>
-            <td data-label="Tên tài sản">{{ asset.ten_tai_san }}</td>
-            <td data-label="Ngày vào sổ">{{ asset.ngay_vao_so }}</td>
-            <td data-label="Trạng thái">{{ asset.trang_thai }}</td>
-            <td data-label="Serial No.">{{ asset.serial }}</td>
-            <td data-label="Hành động">
-                <a href="{{ url_for('delete_asset', id=asset.id) }}" class="btn delete" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
-                <a href="{{ url_for('asset_detail', id=asset.id) }}" class="btn detail">Chi tiết</a>
-            </td>
-        </tr>
+        {% if assets %}
+            {% for asset in assets %}
+            <tr data-id="{{ asset.id }}" class="border-b hover:bg-gray-100 cursor-pointer">
+                <td class="px-4 py-2 border-r border-gray-200 font-medium text-gray-800">{{ asset.ma_tai_san }}</td>
+                <td class="px-4 py-2 border-r border-gray-200">{{ asset.ten_tai_san }}</td>
+                <td class="px-4 py-2 border-r border-gray-200">{{ asset.ngay_vao_so }}</td>
+                <td class="px-4 py-2 border-r border-gray-200">
+                    {% if asset.trang_thai == 'Hỏng' %}
+                    <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-semibold">Hỏng</span>
+                    {% elif asset.trang_thai == 'Đang sử dụng' %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">Sử dụng</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">Sẵn sàng</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 border-r border-gray-200">{{ asset.serial }}</td>
+                <td class="px-4 py-2 border-r border-gray-200">{{ asset.nguoi_su_dung or '-' }}</td>
+                <td class="px-4 py-2 border-r border-gray-200">{{ asset.bo_phan or '-' }}</td>
+                <td class="space-x-2 text-center">
+                    <a href="{{ url_for('delete_asset', id=asset.id) }}" class="btn btn-delete">🗑 Xóa</a>
+                    <a href="{{ url_for('asset_detail', id=asset.id) }}" class="btn btn-detail">🔍 Chi tiết</a>
+                </td>
+            </tr>
+            {% endfor %}
         {% else %}
-        <tr><td colspan="6">Không có dữ liệu</td></tr>
-        {% endfor %}
+            <td colspan="8" class="text-center text-gray-500 py-4">Không có dữ liệu</td>
+        {% endif %}
     </table>
-    <div class="pagination">
-        {% for page_num in range(1, pagination.total_pages + 1) %}
-            {% if page_num == pagination.page %}
-                <span class="active">{{ page_num }}</span>
-            {% else %}
-                <a href="{{ url_for('filter_assets', page=page_num, search=search_query, status=filter_status) }}">{{ page_num }}</a>
-            {% endif %}
-        {% endfor %}
+
+    <!-- Phân trang -->
+    <div class="mt-4">
+        {{ pagination.info }}
+        {{ pagination.links }}
     </div>
 
+    <!-- Form thêm/sửa tài sản -->
+    <!-- Form thêm/sửa tài sản -->
+    <form id="asset-form" method="post" enctype="multipart/form-data"
+        class="mt-6 bg-white p-6 rounded-lg shadow-md">
+        <input type="hidden" name="id" id="asset-id">
 
+        <!-- Chia 3 cột: 2 cột nhập liệu + 1 cột ảnh -->
+        <div class="grid grid-cols-3 gap-6">
+            
+            <!-- 🧩 Cột 1 -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Mã tài sản</label>
+                    <input type="text" name="ma_tai_san" required class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tên tài sản</label>
+                    <input type="text" name="ten_tai_san" required class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Ngày vào sổ</label>
+                    <input type="date" name="ngay_vao_so" required class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Trạng thái</label>
+                    <select name="trang_thai" required class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Sẵn sàng">Sẵn sàng</option>
+                        <option value="Đang sử dụng">Đang sử dụng</option>
+                        <option value="Hỏng">Hỏng</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Serial</label>
+                    <input type="text" name="serial" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <!-- 🧩 Cột 2 -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Giá trị</label>
+                    <input type="number" name="gia_tri" step="0.01" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Ngày bảo trì</label>
+                    <input type="date" name="ngay_bao_tri" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Hãng sản xuất</label>
+                    <input type="text" name="hang_sx" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Bộ phận</label>
+                    <input type="text" name="bo_phan" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Người sử dụng</label>
+                    <input type="text" name="nguoi_su_dung" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <!-- 🖼️ Cột 3 (Upload + Preview ảnh) -->
+            <div class="flex flex-col items-left justify-start">
+                <label class="block text-sm font-medium text-gray-700">Nhóm tài sản</label>
+                <input type="text" name="nhom_tai_san" class="border border-gray-300 p-2 w-full rounded focus:ring-blue-500 focus:border-blue-500">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh</label>
+                <input type="file" name="image" accept="image/*" onchange="previewImage(event)"
+                    class="border border-gray-300 p-2 rounded w-full text-sm focus:ring-blue-500 focus:border-blue-500">
+                
+                <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg w-full flex justify-center items-center bg-gray-50 h-48">
+                    <img id="preview" src="" alt="Preview ảnh" class="max-h-44 object-contain">
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="mt-6 flex space-x-4">
+            <button type="submit" id="add-btn"
+                    class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded shadow">
+                ➕ Thêm mới
+            </button>
+            <button type="submit" id="update-btn"
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded shadow hidden">
+                🔄 Cập nhật
+            </button>
+        </div>
+    </form>
+
+
+    <!-- Script -->
     <script>
-    // Điền thông tin khi nhấp vào tài sản
+        // Điền thông tin khi nhấp vào tài sản
         document.addEventListener('DOMContentLoaded', function() {
-        const table = document.getElementById('asset-table');
-        if (table) {
-            table.addEventListener('click', function(e) {
-                // Ngăn event lan lên từ các phần tử con (như select hoặc button)
-                if (e.target.tagName !== 'A' && e.target.tagName !== 'SELECT') { // Loại bỏ link và select
-                    const row = e.target.closest('tr');
-                    if (row) {
-                        const assetId = row.getAttribute('data-id');
-                        console.log('Clicked row, asset ID:', assetId);
-                        fillForm(assetId);
+            const table = document.getElementById('asset-table');
+            if (table) {
+                table.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'A' && e.target.tagName !== 'SELECT') { // Loại bỏ link và select
+                        const row = e.target.closest('tr');
+                        if (row) {
+                            const assetId = row.getAttribute('data-id');
+                            console.log('Clicked row, asset ID:', assetId);
+                            fillForm(assetId);
+                        }
                     }
-                }
-            });
-        } else {
-            console.error('Asset table not found');
-        }
+                });
+            } else {
+                console.error('Asset table not found');
+            }
 
-        function fillForm(assetId) {
-            console.log('Filling form for asset ID:', assetId);
-            fetch(`/get_asset/${assetId}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Fetched data:', data);
-                    document.querySelector('input[name="ma_tai_san"]').value = data.ma_tai_san || '';
-                    document.querySelector('input[name="ten_tai_san"]').value = data.ten_tai_san || '';
-                    document.querySelector('input[name="ngay_vao_so"]').value = data.ngay_vao_so || '';
-                    const select = document.querySelector('select[name="trang_thai"]');
-                    select.value = data.trang_thai || '';
-                    console.log('Select value set to:', select.value);
-                    document.querySelector('input[name="serial"]').value = data.serial || '';
-                    document.querySelector('input[name="gia_tri"]').value = data.gia_tri || '';
-                    document.querySelector('input[name="ngay_bao_tri"]').value = data.ngay_bao_tri || '';
-                    document.querySelector('input[name="hang_sx"]').value = data.hang_sx || '';
-                    document.querySelector('input[name="bo_phan"]').value = data.bo_phan || '';
-                    document.querySelector('input[name="nguoi_su_dung"]').value = data.nguoi_su_dung || '';
-                    document.querySelector('input[name="nhom_tai_san"]').value = data.nhom_tai_san || '';
-                    if (data.image_path) {
-                        document.getElementById('preview').src = data.image_path;
-                    } else {
-                        document.getElementById('preview').src = '';
-                    }
-                    const updateBtn = document.getElementById('update-btn');
-                    if (updateBtn) {
-                        updateBtn.style.display = 'inline-block';
-                        console.log('Update button displayed');
-                    } else {
-                        console.error('Update button not found');
-                    }
-                    document.getElementById('asset-form').setAttribute('data-editing-id', assetId);
-                })
-                .catch(error => console.error('Error fetching asset:', error));
+            function fillForm(assetId) {
+                console.log('Filling form for asset ID:', assetId);
+                fetch(`/get_asset/${assetId}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Fetched data:', data);
+                        document.querySelector('input[name="ma_tai_san"]').value = data.ma_tai_san || '';
+                        document.querySelector('input[name="ten_tai_san"]').value = data.ten_tai_san || '';
+                        document.querySelector('input[name="ngay_vao_so"]').value = data.ngay_vao_so || '';
+                        const select = document.querySelector('select[name="trang_thai"]');
+                        select.value = data.trang_thai || '';
+                        console.log('Select value set to:', select.value);
+                        document.querySelector('input[name="serial"]').value = data.serial || '';
+                        document.querySelector('input[name="gia_tri"]').value = data.gia_tri || '';
+                        document.querySelector('input[name="ngay_bao_tri"]').value = data.ngay_bao_tri || '';
+                        document.querySelector('input[name="hang_sx"]').value = data.hang_sx || '';
+                        document.querySelector('input[name="bo_phan"]').value = data.bo_phan || '';
+                        document.querySelector('input[name="nguoi_su_dung"]').value = data.nguoi_su_dung || '';
+                        document.querySelector('input[name="nhom_tai_san"]').value = data.nhom_tai_san || '';
+                        if (data.image_path) {
+                            document.getElementById('preview').src = data.image_path;
+                        } else {
+                            document.getElementById('preview').src = '';
+                        }
+                        const updateBtn = document.getElementById('update-btn');
+                        if (updateBtn) {
+                            updateBtn.style.display = 'inline-block';
+                            console.log('Update button displayed');
+                        } else {
+                            console.error('Update button not found');
+                        }
+                        document.getElementById('asset-form').setAttribute('data-editing-id', assetId);
+                    })
+                    .catch(error => console.error('Error fetching asset:', error));
             }
         });
 
@@ -369,7 +311,7 @@
             if (form) {
                 form.addEventListener('submit', function(e) {
                     const editingId = this.getAttribute('data-editing-id');
-                    console.log('Submitting form, editingId:', editingId, 'Form data:', Object.fromEntries(new FormData(this))); // Debug form data
+                    console.log('Submitting form, editingId:', editingId, 'Form data:', Object.fromEntries(new FormData(this)));
                     if (editingId) {
                         e.preventDefault();
                         const formData = new FormData(this);
@@ -389,7 +331,6 @@
                         .catch(error => console.error('Error updating asset:', error));
                     } else {
                         console.log('Submitting new asset');
-                        // Thêm mới, cho phép duplicate
                     }
                 });
 
@@ -399,7 +340,7 @@
                     filterForm.addEventListener('submit', function(e) {
                         const searchValue = document.querySelector('input[name="search"]').value;
                         if (searchValue) {
-                            e.preventDefault(); // Ngăn form submit mặc định
+                            e.preventDefault();
                             fetch(`/search_asset?search=${encodeURIComponent(searchValue)}`)
                                 .then(response => response.json())
                                 .then(data => {
@@ -420,5 +361,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

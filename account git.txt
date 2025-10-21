@@ -1,0 +1,3 @@
+PS D:\Infrastructure\Asset> git config --global user.email "judk204@gmail.com"
+PS D:\Infrastructure\Asset> git config --global user.name "JudgeK"
+PS D:\Infrastructure\Asset> git commit -m "Begin Code"

@@ -26,7 +26,9 @@ def index():
         query = query.filter(Asset.trang_thai == filter_status)
     
     total = query.count()
+    print(f"DEBUG - Total records: {total}, Page: {page}, Offset: {offset}, Per page: {per_page}")  # Debug total
     assets = query.order_by(Asset.ma_tai_san).offset(offset).limit(per_page).all()
+    print(f"DEBUG - Fetched assets count: {len(assets)}, First ID: {assets[0].id if assets else 'None'}, All IDs: {[a.id for a in assets]}")  # Debug dữ liệu
     pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
     return render_template('index.html', assets=assets, page=page, per_page=per_page, pagination=pagination, search_query=search_query, filter_status=filter_status)
 

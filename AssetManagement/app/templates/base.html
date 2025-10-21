@@ -1,1 +1,155 @@
-<!-- Template cơ sở (nếu dùng kế thừa) -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài sản</title>
+
+    <!-- ✅ TailwindCSS v3.4 mới nhất -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', /* xanh chính */
+                        danger: '#ef4444',
+                        sidebar: '#1f2937',
+                        light: '#f9fafb'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Sidebar chính */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #1f2937; /* Tailwind: gray-800 */
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            z-index: 40;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            color: #d1d5db; /* text-gray-300 */
+            font-weight: 500;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #374151; /* gray-700 */
+            color: #fff;
+        }
+
+        .sidebar a.active {
+            background-color: #2563eb;
+            color: #fff;
+            border-left: 4px solid #60a5fa;
+        }
+
+        .sidebar h2 {
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Nội dung chính */
+        .content {
+            margin-left: 250px;
+            padding: 25px;
+            background-color: #f3f4f6; /* gray-100 */
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Thanh header trong content */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: 8px;
+            padding: 12px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .topbar h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* Responsive (mobile) */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            .sidebar.open {
+                width: 250px;
+            }
+            .content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- ✅ SIDEBAR -->
+    <div id="sidebar" class="sidebar">
+        <div>
+            <h2>🏢 Quản lý</h2>
+            <a href="{{ url_for('index') }}" class="active">📦 Quản lý tài sản</a>
+            <a href="#">📊 Dashboard</a>
+            <a href="#">🧾 Phiếu</a>
+        </div>
+        <div class="text-gray-400 text-sm text-center py-4 border-t border-gray-700">
+            © 2025 AssetManager
+        </div>
+    </div>
+
+    <!-- ✅ CONTENT -->
+    <div class="content">
+        <div class="topbar">
+            <button id="toggleBtn" class="menu-toggle hidden bg-primary text-white px-3 py-1 rounded-md shadow-md">
+                ☰
+            </button>
+            <h1>Hệ thống Quản lý Tài sản</h1>
+        </div>
+
+        <!-- Nội dung chính -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- ✅ JS mở/đóng sidebar trên mobile -->
+    <script>
+        const toggleBtn = document.getElementById('toggleBtn');
+        const sidebar = document.getElementById('sidebar');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+    </script>
+</body>
+</html>
