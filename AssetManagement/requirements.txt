@@ -1,0 +1,4 @@
+# Danh sách thư viện Python cần cài
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.3
+pyodbc==4.0.39

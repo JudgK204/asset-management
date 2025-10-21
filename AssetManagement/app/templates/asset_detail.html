@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Tài Sản</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .detail-container {
+            background-color: #e74c3c; /* Màu đỏ giả định cho ô */
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            max-width: 400px;
+        }
+        .detail-container h2 {
+            margin-top: 0;
+        }
+        .detail-container p {
+            margin: 5px 0;
+        }
+        .detail-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid white;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Chi Tiết Tài Sản</h1>
+    </div>
+    <div class="detail-container">
+        <h2>{{ asset.ten_tai_san }}</h2>
+        <p><strong>Mã tài sản:</strong> {{ asset.ma_tai_san }}</p>
+        <p><strong>Ngày vào sổ:</strong> {{ asset.ngay_vao_so }}</p>
+        <p><strong>Trạng thái:</strong> {{ asset.trang_thai }}</p>
+        <p><strong>Serial:</strong> {{ asset.serial }}</p>
+        <p><strong>Giá trị:</strong> {{ '{:,.2f}'.format(asset.gia_tri) if asset.gia_tri else 'Chưa có' }} VND</p>
+        <p><strong>Ngày bảo trì:</strong> {{ asset.ngay_bao_tri.strftime('%Y-%m-%d') if asset.ngay_bao_tri else 'Chưa có' }}</p>
+        <p><strong>Địa điểm:</strong> {{ asset.hang_sx or 'Chưa có' }}</p>
+        <p><strong>Người sử dụng:</strong> {{ asset.nguoi_su_dung or 'Chưa có' }}</p>
+        {% if asset.image_path %}
+            <p><strong>Ảnh:</strong> <img src="{{ asset.image_path }}" alt="Ảnh tài sản"></p>
+        {% else %}
+            <p><strong>Ảnh:</strong> Không có ảnh</p>
+        {% endif %}
+        <a href="{{ url_for('index') }}" class="btn back">Quay lại</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Tài Sản</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .pagination {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .pagination li {
+            display: inline-block;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .pagination .active span {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination a:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .search-input, .search-select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            height: 36px;
+        }
+
+        .search-select {
+            flex: 0 0 auto;  /* Không cho nó giãn hết */
+        }
+
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .form-grid-3 {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-column {
+            flex: 1;
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            text-align: center;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+        }
+
+        .button-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .submit-btn, .update-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .update-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .submit-btn:hover, .update-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Quản Lý Tài Sản</h1>
+    </div>
+    <div class="search-container">
+        <form action="/filter" method="GET" class="search-bar">            <input type="text" name="search" placeholder="🔍 Tìm kiếm mã hoặc tên..." value="{{ search_query }}" class="search-input">
+
+            <select name="status" class="search-select" style="max-width: 120px;">
+                <option value="">Trạng thái</option>
+                <option value="Cấp phát" {% if filter_status == 'Cấp phát' %}selected{% endif %}>Cấp phát</option>
+                <option value="Sử dụng" {% if filter_status == 'Sử dụng' %}selected{% endif %}>Sử dụng</option>
+                <option value="Hỏng" {% if filter_status == 'Hỏng' %}selected{% endif %}>Hỏng</option>
+            </select>
+
+            <input type="date" name="start_date" value="{{ filter_start_date }}" class="search-input" style="max-width: 150px;" placeholder="Từ ngày">
+
+            <!-- <input type="date" name="end_date" value="{{ filter_end_date }}" class="search-input" style="max-width: 150px;" placeholder="Đến ngày"> -->
+
+            <!-- <input type="text" name="nguoi_su_dung" placeholder="Người sử dụng" value="{{ filter_nguoi_su_dung }}" class="search-input" style="max-width: 150px;"> -->
+
+            <button type="submit" class="search-btn">Lọc</button>
+        </form>
+    </div>
+
+    <div class="form-container">
+        <form action="/add" method="POST" enctype="multipart/form-data" id="asset-form">
+            <div class="form-grid-3">
+                <!-- Cột 1 -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label>Mã tài sản</label>
+                        <input type="text" name="ma_tai_san" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tên tài sản</label>
+                        <input type="text" name="ten_tai_san" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày vào sổ</label>
+                        <input type="date" name="ngay_vao_so" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <select name="trang_thai" required>
+                            <option value="">Chọn trạng thái</option>
+                            <option value="Cấp phát">Cấp phát</option>
+                            <option value="Sử dụng">Sử dụng</option>
+                            <option value="Hỏng">Hỏng</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Serial No.</label>
+                        <input type="text" name="serial" required>
+                    </div>
+                </div>
+
+                <!-- Cột 2 -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label>Giá trị</label>
+                        <input type="number" step="0.01" name="gia_tri" oninput="formatGiaTri()">
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày bảo trì</label>
+                        <input type="date" name="ngay_bao_tri">
+                    </div>
+                    <div class="form-group">
+                        <label>Hãng sản xuất</label>
+                        <input type="text" name="hang_sx">
+                    </div>
+                    <div class="form-group">
+                        <label>Bộ phận</label>
+                        <input type="text" name="bo_phan">
+                    </div>
+                    <div class="form-group">
+                        <label>Người sử dụng</label>
+                        <input type="text" name="nguoi_su_dung">
+                    </div>
+                </div>
+
+                <!-- Cột 3 (Upload ảnh + Preview) -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label>Nhóm tài sản</label>
+                        <input type="text" name="nhom_tai_san">
+                    </div>
+                    <div class="form-group">
+                        <label>Ảnh đính kèm</label>
+                        <input type="file" name="image" accept="image/*" onchange="previewImage(event)">
+                    </div>
+                    <div class="image-preview">
+                        <img id="preview" src="" alt="Preview sẽ hiển thị ở đây">
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="submit-btn">Thêm mới</button>
+                <button type="submit" class="update-btn" id="update-btn" style="display: none;">Cập nhật</button>
+            </div>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="table-actions">
+        <a href="{{ url_for('export_assets') }}" class="btn export">Xuất Báo Cáo</a>
+        <a href="{{ url_for('export_excel') }}" class="btn export">Xuất Excel</a>
+    </div>
+    <table id="asset-table">
+        <tr>
+            <th>Mã tài sản</th>
+            <th>Tên tài sản</th>
+            <th>Ngày vào sổ</th>
+            <th>Trạng thái</th>
+            <th>Serial No.</th>
+            <th>Hành động</th>
+        </tr>
+        {% for asset in assets %}
+        <tr data-id="{{ asset.id }}" style="cursor: pointer;">
+            <td data-label="Mã tài sản">{{ asset.ma_tai_san }}</td>
+            <td data-label="Tên tài sản">{{ asset.ten_tai_san }}</td>
+            <td data-label="Ngày vào sổ">{{ asset.ngay_vao_so }}</td>
+            <td data-label="Trạng thái">{{ asset.trang_thai }}</td>
+            <td data-label="Serial No.">{{ asset.serial }}</td>
+            <td data-label="Hành động">
+                <a href="{{ url_for('delete_asset', id=asset.id) }}" class="btn delete" onclick="return confirm('Bạn có chắc muốn xóa?')">Xóa</a>
+                <a href="{{ url_for('asset_detail', id=asset.id) }}" class="btn detail">Chi tiết</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Không có dữ liệu</td></tr>
+        {% endfor %}
+    </table>
+    <div class="pagination">
+        {% for page_num in range(1, pagination.total_pages + 1) %}
+            {% if page_num == pagination.page %}
+                <span class="active">{{ page_num }}</span>
+            {% else %}
+                <a href="{{ url_for('filter_assets', page=page_num, search=search_query, status=filter_status) }}">{{ page_num }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+
+    <script>
+    // Điền thông tin khi nhấp vào tài sản
+        document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('asset-table');
+        if (table) {
+            table.addEventListener('click', function(e) {
+                // Ngăn event lan lên từ các phần tử con (như select hoặc button)
+                if (e.target.tagName !== 'A' && e.target.tagName !== 'SELECT') { // Loại bỏ link và select
+                    const row = e.target.closest('tr');
+                    if (row) {
+                        const assetId = row.getAttribute('data-id');
+                        console.log('Clicked row, asset ID:', assetId);
+                        fillForm(assetId);
+                    }
+                }
+            });
+        } else {
+            console.error('Asset table not found');
+        }
+
+        function fillForm(assetId) {
+            console.log('Filling form for asset ID:', assetId);
+            fetch(`/get_asset/${assetId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched data:', data);
+                    document.querySelector('input[name="ma_tai_san"]').value = data.ma_tai_san || '';
+                    document.querySelector('input[name="ten_tai_san"]').value = data.ten_tai_san || '';
+                    document.querySelector('input[name="ngay_vao_so"]').value = data.ngay_vao_so || '';
+                    const select = document.querySelector('select[name="trang_thai"]');
+                    select.value = data.trang_thai || '';
+                    console.log('Select value set to:', select.value);
+                    document.querySelector('input[name="serial"]').value = data.serial || '';
+                    document.querySelector('input[name="gia_tri"]').value = data.gia_tri || '';
+                    document.querySelector('input[name="ngay_bao_tri"]').value = data.ngay_bao_tri || '';
+                    document.querySelector('input[name="hang_sx"]').value = data.hang_sx || '';
+                    document.querySelector('input[name="bo_phan"]').value = data.bo_phan || '';
+                    document.querySelector('input[name="nguoi_su_dung"]').value = data.nguoi_su_dung || '';
+                    document.querySelector('input[name="nhom_tai_san"]').value = data.nhom_tai_san || '';
+                    if (data.image_path) {
+                        document.getElementById('preview').src = data.image_path;
+                    } else {
+                        document.getElementById('preview').src = '';
+                    }
+                    const updateBtn = document.getElementById('update-btn');
+                    if (updateBtn) {
+                        updateBtn.style.display = 'inline-block';
+                        console.log('Update button displayed');
+                    } else {
+                        console.error('Update button not found');
+                    }
+                    document.getElementById('asset-form').setAttribute('data-editing-id', assetId);
+                })
+                .catch(error => console.error('Error fetching asset:', error));
+            }
+        });
+
+        // Xử lý preview ảnh
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById('preview').src = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // Xử lý form submit (Thêm mới hoặc Cập nhật)
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('asset-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const editingId = this.getAttribute('data-editing-id');
+                    console.log('Submitting form, editingId:', editingId, 'Form data:', Object.fromEntries(new FormData(this))); // Debug form data
+                    if (editingId) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        fetch(`/update_asset/${editingId}`, {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Cập nhật thành công!');
+                                location.reload();
+                            } else {
+                                alert('Cập nhật thất bại: ' + data.message);
+                            }
+                        })
+                        .catch(error => console.error('Error updating asset:', error));
+                    } else {
+                        console.log('Submitting new asset');
+                        // Thêm mới, cho phép duplicate
+                    }
+                });
+
+                // Gọi fillForm khi submit search
+                const filterForm = document.querySelector('form[action="/filter"]');
+                if (filterForm) {
+                    filterForm.addEventListener('submit', function(e) {
+                        const searchValue = document.querySelector('input[name="search"]').value;
+                        if (searchValue) {
+                            e.preventDefault(); // Ngăn form submit mặc định
+                            fetch(`/search_asset?search=${encodeURIComponent(searchValue)}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data && data.id) {
+                                        fillForm(data.id);
+                                    } else {
+                                        console.log('No asset found for search:', searchValue);
+                                    }
+                                })
+                                .catch(error => console.error('Error searching asset:', error));
+                        }
+                    });
+                } else {
+                    console.error('Filter form not found');
+                }
+            } else {
+                console.error('Asset form not found');
+            }
+        });
+    </script>
+</body>
+</html>
