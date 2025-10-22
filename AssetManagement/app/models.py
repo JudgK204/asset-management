@@ -16,7 +16,8 @@ class Asset(db.Model):
     hang_sx = db.Column(Unicode(100))
     nguoi_su_dung = db.Column(Unicode(100))
     bo_phan = db.Column(Unicode(100))
-    nhom_tai_san = db.Column(Unicode(100))
+    vi_tri = db.Column(Unicode(100))
+    ghi_chu = db.Column(db.Text)
 
 class User(db.Model):
     __tablename__ = 'Users'

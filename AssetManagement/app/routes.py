@@ -47,7 +47,8 @@ def get_asset(id):
         'hang_sx': asset.hang_sx or '',
         'bo_phan': asset.bo_phan or '',  # Bổ sung trường bộ phận
         'nguoi_su_dung': asset.nguoi_su_dung or '',
-        'nhom_tai_san': asset.nhom_tai_san or '',  # Bổ sung trường nhóm tài sản
+        'vi_tri': asset.vi_tri or '',
+        'ghi_chu': asset.ghi_chu or '',
         'image_path': asset.image_path or ''
     })
 
@@ -64,7 +65,8 @@ def update_asset(id):
     asset.hang_sx = request.form.get('hang_sx')
     asset.bo_phan = request.form.get('bo_phan')  # Bổ sung trường bộ phận
     asset.nguoi_su_dung = request.form.get('nguoi_su_dung')
-    asset.nhom_tai_san = request.form.get('nhom_tai_san')  # Bổ sung trường nhóm tài sản
+    asset.vi_tri = request.form.get('vi_tri')
+    asset.ghi_chu = request.form.get('ghi_chu')
     image = request.files.get('image')
     if image and image.filename:
         filename = f"{asset.ma_tai_san}_{image.filename}"
@@ -87,7 +89,8 @@ def add_asset():
     hang_sx = request.form.get('hang_sx')
     bo_phan = request.form.get('bo_phan')  # Bổ sung trường bộ phận
     nguoi_su_dung = request.form.get('nguoi_su_dung')
-    nhom_tai_san = request.form.get('nhom_tai_san')  # Bổ sung trường nhóm tài sản
+    vi_tri = request.form.get('vi_tri')
+    ghi_chu = request.form.get('ghi_chu')
     image = request.files.get('image')
     image_path = None
 
@@ -101,7 +104,7 @@ def add_asset():
     new_asset = Asset(ma_tai_san=ma_tai_san, ten_tai_san=ten_tai_san,
                       ngay_vao_so=ngay_vao_so, trang_thai=trang_thai,
                       serial=serial, gia_tri=gia_tri, ngay_bao_tri=ngay_bao_tri,
-                      hang_sx=hang_sx, bo_phan=bo_phan, nguoi_su_dung=nguoi_su_dung, nhom_tai_san=nhom_tai_san, image_path=image_path)
+                      hang_sx=hang_sx, bo_phan=bo_phan, nguoi_su_dung=nguoi_su_dung, vi_tri=vi_tri, ghi_chu=ghi_chu, image_path=image_path)
     db.session.add(new_asset)
     db.session.commit()
     flash('Tài sản đã được thêm thành công!', 'success')
@@ -115,13 +118,13 @@ def delete_asset(id):
     flash('Tài sản đã được xóa thành công!', 'success')
     return redirect(url_for('index'))
 
-@app.route('/export')
-def export_assets():
-    assets = Asset.query.all()
-    output = "Danh sách tài sản:\n\n"
-    for asset in assets:
-        output += f"Mã: {asset.ma_tai_san}, Tên: {asset.ten_tai_san}, Ngày: {asset.ngay_vao_so}, Trạng thái: {asset.trang_thai}, Serial: {asset.serial}\n"
-    return output, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+# @app.route('/export')
+# def export_assets():
+#     assets = Asset.query.all()
+#     output = "Danh sách tài sản:\n\n"
+#     for asset in assets:
+#         output += f"Mã: {asset.ma_tai_san}, Tên: {asset.ten_tai_san}, Ngày: {asset.ngay_vao_so}, Trạng thái: {asset.trang_thai}, Serial: {asset.serial}\n, Ghi chú: {asset.ghi_chu}\n"
+#     return output, 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 @app.route('/filter', methods=['GET'])
 def filter_assets():
@@ -157,13 +160,30 @@ def show_chart():
 
 @app.route('/export_excel')
 def export_excel():
-    assets = Asset.query.all()
-    df = pd.DataFrame([(a.ma_tai_san, a.ten_tai_san, a.ngay_vao_so, a.trang_thai, a.serial, a.gia_tri, a.ngay_bao_tri, a.hang_sx, a.nguoi_su_dung, a.bo_phan, a.nhom_tai_san, a.image_path) for a in assets],
-                      columns=['Mã tài sản', 'Tên tài sản', 'Ngày vào sổ', 'Trạng thái', 'Serial', 'Giá trị', 'Ngày bảo trì', 'Hãng sản xuất', 'Người sử dụng', 'Bộ phận', 'Nhóm tài sản', 'Đường dẫn ảnh'])
+    select_all = request.args.get('select_all', 'false').lower() == 'true'
+    selected_ids = request.args.getlist('ids[]')
+
+    if select_all:
+        # ✅ Xuất tất cả tài sản
+        assets = Asset.query.all()
+    elif selected_ids:
+        # ✅ Xuất tài sản được chọn
+        assets = Asset.query.filter(Asset.id.in_(selected_ids)).all()
+    else:
+        return "Không có tài sản nào được chọn", 400
+
+    df = pd.DataFrame([
+        (a.ma_tai_san, a.ten_tai_san, a.ngay_vao_so, a.trang_thai, a.serial, a.gia_tri,
+         a.ngay_bao_tri, a.hang_sx, a.nguoi_su_dung, a.bo_phan, a.vi_tri, a.ghi_chu, a.image_path)
+        for a in assets
+    ], columns=['Mã tài sản', 'Tên tài sản', 'Ngày vào sổ', 'Trạng thái', 'Serial', 'Giá trị',
+                'Ngày bảo trì', 'Hãng sản xuất', 'Người sử dụng', 'Bộ phận', 'Vị trí', 'Ghi chú', 'Đường dẫn ảnh'])
+
     output = BytesIO()
     df.to_excel(output, index=False)
     output.seek(0)
     return send_file(output, download_name='assets.xlsx', as_attachment=True)
+
 
 @app.route('/asset_detail/<int:id>')
 def asset_detail(id):
@@ -191,7 +211,8 @@ def search_asset():
                 'hang_sx': asset.hang_sx or '',
                 'nguoi_su_dung': asset.nguoi_su_dung or '',
                 'bo_phan': asset.bo_phan or '',
-                'nhom_tai_san': asset.nhom_tai_san or '',
+                'vi_tri': asset.vi_tri or '',
+                'ghi_chu': asset.ghi_chu or '',
                 'image_path': asset.image_path or ''
             })
     return jsonify({})

@@ -6,48 +6,153 @@
     <title>Chi Tiết Tài Sản</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .detail-container {
-            background-color: #e74c3c; /* Màu đỏ giả định cho ô */
+        body {
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 50px auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 30px;
+        }
+
+        .asset-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 40px;
+            margin-bottom: 10px;
+        }
+
+        .asset-info p {
+            margin: 6px 0;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .asset-info strong {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             color: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin: 20px 0;
-            max-width: 400px;
         }
-        .detail-container h2 {
-            margin-top: 0;
+
+        .status-Sẵn\ sàng {
+            background-color: #6b7280;
         }
-        .detail-container p {
-            margin: 5px 0;
+
+        .status-Đang\ sử\ dụng {
+            background-color: #10b981;
         }
-        .detail-container img {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid white;
-            border-radius: 3px;
+
+        .status-Hỏng {
+            background-color: #ef4444;
+        }
+
+        .image-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .image-section img {
+            max-width: 320px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .no-image {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin-top: 30px;
+            transition: background 0.2s ease-in-out;
+        }
+
+        .btn-back:hover {
+            background-color: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+            .asset-info {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="container">
         <h1>Chi Tiết Tài Sản</h1>
-    </div>
-    <div class="detail-container">
-        <h2>{{ asset.ten_tai_san }}</h2>
-        <p><strong>Mã tài sản:</strong> {{ asset.ma_tai_san }}</p>
-        <p><strong>Ngày vào sổ:</strong> {{ asset.ngay_vao_so }}</p>
-        <p><strong>Trạng thái:</strong> {{ asset.trang_thai }}</p>
-        <p><strong>Serial:</strong> {{ asset.serial }}</p>
-        <p><strong>Giá trị:</strong> {{ '{:,.2f}'.format(asset.gia_tri) if asset.gia_tri else 'Chưa có' }} VND</p>
-        <p><strong>Ngày bảo trì:</strong> {{ asset.ngay_bao_tri.strftime('%Y-%m-%d') if asset.ngay_bao_tri else 'Chưa có' }}</p>
-        <p><strong>Địa điểm:</strong> {{ asset.hang_sx or 'Chưa có' }}</p>
-        <p><strong>Người sử dụng:</strong> {{ asset.nguoi_su_dung or 'Chưa có' }}</p>
-        {% if asset.image_path %}
-            <p><strong>Ảnh:</strong> <img src="{{ asset.image_path }}" alt="Ảnh tài sản"></p>
-        {% else %}
-            <p><strong>Ảnh:</strong> Không có ảnh</p>
-        {% endif %}
-        <a href="{{ url_for('index') }}" class="btn back">Quay lại</a>
+
+        <div class="asset-info">
+            <p><strong>Tên tài sản:</strong> {{ asset.ten_tai_san }}</p>
+            <p><strong>Mã tài sản:</strong> {{ asset.ma_tai_san }}</p>
+
+            <p><strong>Ngày vào sổ:</strong> {{ asset.ngay_vao_so }}</p>
+            <p>
+                <strong>Trạng thái:</strong>
+                {% if asset.trang_thai == 'Đang sử dụng' %}
+                    <span class="status-badge" style="background-color: #10b981;">{{ asset.trang_thai }}</span>
+                {% elif asset.trang_thai == 'Hỏng' %}
+                    <span class="status-badge" style="background-color: #ef4444;">{{ asset.trang_thai }}</span>
+                {% elif asset.trang_thai == 'Sẵn sàng' %}
+                    <span class="status-badge" style="background-color: #6b7280;">{{ asset.trang_thai }}</span>
+                {% else %}
+                    <span class="status-badge" style="background-color: #9ca3af;">{{ asset.trang_thai or 'Không rõ' }}</span>
+                {% endif %}
+            </p>
+
+            <p><strong>Serial:</strong> {{ asset.serial or 'Chưa có' }}</p>
+            <p><strong>Giá trị:</strong> {{ '{:,.2f}'.format(asset.gia_tri) if asset.gia_tri else 'Chưa có' }} VND</p>
+
+            <p><strong>Ngày bảo trì:</strong> {{ asset.ngay_bao_tri.strftime('%Y-%m-%d') if asset.ngay_bao_tri else 'Chưa có' }}</p>
+            <p><strong>Hãng sản xuất:</strong> {{ asset.hang_sx or 'Chưa có' }}</p>
+
+            <p><strong>Người sử dụng:</strong> {{ asset.nguoi_su_dung or 'Chưa có' }}</p>
+            <p><strong>Bộ phận:</strong> {{ asset.bo_phan or 'Chưa có' }}</p>
+
+            <p><strong>Vị trí:</strong> {{ asset.vi_tri or 'Chưa có' }}</p>
+        </div>
+
+        <div class="image-section">
+            {% if asset.image_path %}
+                <img src="{{ asset.image_path }}" alt="Ảnh tài sản">
+            {% else %}
+                <p class="no-image">Không có ảnh minh họa</p>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center;">
+            <a href="{{ url_for('index') }}" class="btn-back">← Quay lại danh sách</a>
+        </div>
     </div>
 </body>
 </html>
