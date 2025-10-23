@@ -55,7 +55,13 @@ def get_asset(id):
 @app.route('/update_asset/<int:id>', methods=['POST'])
 def update_asset(id):
     asset = Asset.query.get_or_404(id)
-    asset.ma_tai_san = request.form['ma_tai_san']
+    ma_tai_san = request.form['ma_tai_san']
+    # ⚠️ Kiểm tra trùng (ngoại trừ chính nó)
+    existing_asset = Asset.query.filter(Asset.ma_tai_san == ma_tai_san, Asset.id != id).first()
+    if existing_asset:
+        return jsonify({'success': False, 'message': f"Mã tài sản '{ma_tai_san}' đã tồn tại!"})
+    
+    asset.ma_tai_san = ma_tai_san
     asset.ten_tai_san = request.form['ten_tai_san']
     asset.ngay_vao_so = request.form['ngay_vao_so']
     asset.trang_thai = request.form['trang_thai']
@@ -87,12 +93,18 @@ def add_asset():
     gia_tri = request.form.get('gia_tri')
     ngay_bao_tri = request.form.get('ngay_bao_tri')
     hang_sx = request.form.get('hang_sx')
-    bo_phan = request.form.get('bo_phan')  # Bổ sung trường bộ phận
+    bo_phan = request.form.get('bo_phan')
     nguoi_su_dung = request.form.get('nguoi_su_dung')
     vi_tri = request.form.get('vi_tri')
     ghi_chu = request.form.get('ghi_chu')
     image = request.files.get('image')
     image_path = None
+
+    # ⚠️ Kiểm tra trùng mã tài sản
+    existing_asset = Asset.query.filter_by(ma_tai_san=ma_tai_san).first()
+    if existing_asset:
+        flash(f"Mã tài sản '{ma_tai_san}' đã tồn tại. Vui lòng nhập mã khác!", "error")
+        return redirect(url_for('index'))
 
     if image and image.filename:
         filename = f"{ma_tai_san}_{image.filename}"
@@ -101,10 +113,22 @@ def add_asset():
         image.save(image_path)
         image_path = f'/static/images/{filename}'
 
-    new_asset = Asset(ma_tai_san=ma_tai_san, ten_tai_san=ten_tai_san,
-                      ngay_vao_so=ngay_vao_so, trang_thai=trang_thai,
-                      serial=serial, gia_tri=gia_tri, ngay_bao_tri=ngay_bao_tri,
-                      hang_sx=hang_sx, bo_phan=bo_phan, nguoi_su_dung=nguoi_su_dung, vi_tri=vi_tri, ghi_chu=ghi_chu, image_path=image_path)
+    new_asset = Asset(
+        ma_tai_san=ma_tai_san,
+        ten_tai_san=ten_tai_san,
+        ngay_vao_so=ngay_vao_so,
+        trang_thai=trang_thai,
+        serial=serial,
+        gia_tri=gia_tri,
+        ngay_bao_tri=ngay_bao_tri,
+        hang_sx=hang_sx,
+        bo_phan=bo_phan,
+        nguoi_su_dung=nguoi_su_dung,
+        vi_tri=vi_tri,
+        ghi_chu=ghi_chu,
+        image_path=image_path
+    )
+
     db.session.add(new_asset)
     db.session.commit()
     flash('Tài sản đã được thêm thành công!', 'success')
