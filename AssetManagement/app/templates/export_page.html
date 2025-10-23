@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn tài sản để xuất Excel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="max-w-5xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-6">
+        <h1 class="text-2xl font-bold mb-4 text-blue-700">Chọn tài sản để xuất Excel</h1>
+
+        <!-- Form chọn -->
+        <form action="{{ url_for('export_excel') }}" method="get" id="export-form">
+            <table class="min-w-full border border-gray-200 rounded-md text-sm">
+                <thead class="bg-blue-50 text-blue-700">
+                    <tr>
+                        <th class="p-2 border"><input type="checkbox" id="select-all"></th>
+                        <th class="p-2 border">Mã tài sản</th>
+                        <th class="p-2 border">Tên tài sản</th>
+                        <th class="p-2 border">Trạng thái</th>
+                        <th class="p-2 border">Người sử dụng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in assets %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-2 border text-center">
+                            <input type="checkbox" name="ids[]" value="{{ a.id }}" class="asset-checkbox">
+                        </td>
+                        <td class="p-2 border">{{ a.ma_tai_san }}</td>
+                        <td class="p-2 border">{{ a.ten_tai_san }}</td>
+                        <td class="p-2 border">{{ a.trang_thai }}</td>
+                        <td class="p-2 border">{{ a.nguoi_su_dung or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="mt-6 flex justify-between items-center">
+                <a href="{{ url_for('index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
+                    ← Quay lại
+                </a>
+
+                <button type="submit"
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-md shadow">
+                    Xuất Excel
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Chức năng "chọn tất cả"
+        document.getElementById('select-all').addEventListener('change', function() {
+            document.querySelectorAll('.asset-checkbox').forEach(cb => {
+                cb.checked = this.checked;
+            });
+        });
+
+        // Cảnh báo nếu chưa chọn gì
+        document.getElementById('export-form').addEventListener('submit', function(e) {
+            const checked = document.querySelectorAll('.asset-checkbox:checked');
+            if (checked.length === 0) {
+                e.preventDefault();
+                alert("Vui lòng chọn ít nhất 1 tài sản để xuất Excel!");
+            }
+        });
+    </script>
+</body>
+</html>

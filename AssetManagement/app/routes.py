@@ -160,30 +160,31 @@ def show_chart():
 
 @app.route('/export_excel')
 def export_excel():
-    select_all = request.args.get('select_all', 'false').lower() == 'true'
     selected_ids = request.args.getlist('ids[]')
 
-    if select_all:
-        # ✅ Xuất tất cả tài sản
-        assets = Asset.query.all()
-    elif selected_ids:
-        # ✅ Xuất tài sản được chọn
-        assets = Asset.query.filter(Asset.id.in_(selected_ids)).all()
-    else:
+    if not selected_ids:
         return "Không có tài sản nào được chọn", 400
+
+    assets = Asset.query.filter(Asset.id.in_(selected_ids)).all()
 
     df = pd.DataFrame([
         (a.ma_tai_san, a.ten_tai_san, a.ngay_vao_so, a.trang_thai, a.serial, a.gia_tri,
          a.ngay_bao_tri, a.hang_sx, a.nguoi_su_dung, a.bo_phan, a.vi_tri, a.ghi_chu, a.image_path)
         for a in assets
     ], columns=['Mã tài sản', 'Tên tài sản', 'Ngày vào sổ', 'Trạng thái', 'Serial', 'Giá trị',
-                'Ngày bảo trì', 'Hãng sản xuất', 'Người sử dụng', 'Bộ phận', 'Vị trí', 'Ghi chú', 'Đường dẫn ảnh'])
+                'Ngày bảo trì', 'Hãng sản xuất', 'Người sử dụng', 'Bộ phận', 'Vị trí', 'Ghi chú', 'Ảnh'])
 
     output = BytesIO()
     df.to_excel(output, index=False)
     output.seek(0)
     return send_file(output, download_name='assets.xlsx', as_attachment=True)
 
+
+@app.route('/export_page')
+def export_page():
+    # Lấy toàn bộ tài sản (hoặc bạn có thể thêm lọc nếu muốn)
+    assets = Asset.query.all()
+    return render_template('export_page.html', assets=assets)
 
 @app.route('/asset_detail/<int:id>')
 def asset_detail(id):

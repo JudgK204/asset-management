@@ -73,21 +73,16 @@
     </form>
 
     <!-- Nút Export -->
-    <div class="mt-4 flex space-x-4 items-center">
-        <label class="flex items-center space-x-2">
-            <input type="checkbox" id="select-all-global">
-            <span>Chọn tất cả tài sản</span>
-        </label>
-
-        <button id="export-btn" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded shadow">
+    <div class="mt-4 flex space-x-4">
+        <a href="{{ url_for('export_page') }}"
+        class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded shadow">
             Export Excel
-        </button>
+        </a>
     </div>
 
     <!-- Bảng tài sản -->
     <table id="asset-table" class="w-full bg-white shadow-md rounded">
         <tr class="border-b-4">
-            <th class="px-4 py-2 border-r"></th>
             <th class="px-4 py-2 border-r">Mã tài sản</th>
             <th class="px-4 py-2 border-r">Tên tài sản</th>
             <th class="px-4 py-2 border-r">Ngày vào sổ</th>
@@ -100,7 +95,6 @@
         {% if assets %}
             {% for asset in assets %}
             <tr data-id="{{ asset.id }}" class="border-b hover:bg-gray-100 cursor-pointer">
-                <td class="text-center"><input type="checkbox" class="asset-checkbox" value="{{ asset.id }}"></td>
                 <td class="px-4 py-2 border-r border-gray-200 font-medium text-gray-800">{{ asset.ma_tai_san }}</td>
                 <td class="px-4 py-2 border-r border-gray-200">{{ asset.ten_tai_san }}</td>
                 <td class="px-4 py-2 border-r border-gray-200">{{ asset.ngay_vao_so }}</td>
