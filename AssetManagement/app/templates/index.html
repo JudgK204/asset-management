@@ -235,9 +235,15 @@
                     class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded shadow">
                 ➕ Thêm mới
             </button>
+
             <button type="submit" id="update-btn"
                     class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded shadow hidden">
                 🔄 Cập nhật
+            </button>
+
+            <button type="button" id="reset-btn"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded shadow">
+                ♻️ Làm mới
             </button>
         </div>
     </form>
@@ -245,17 +251,104 @@
 
     <!-- Script -->
     <script>
-        // Điền thông tin khi nhấp vào tài sản
+        // Khai báo biến toàn cục (Global variables)
+        let selectedIds = JSON.parse(localStorage.getItem('selectedIds') || '[]');
+        let selectAllGlobal = localStorage.getItem('selectAllGlobal') === 'true'; // Đảm bảo lấy đúng giá trị boolean
+
+        // --- Khai báo các hàm chính ---
+
+        // 1. Hàm điền dữ liệu vào form (từ ID tài sản)
+        function fillForm(assetId) {
+            const form = document.getElementById('asset-form');
+            if (!form) {
+                console.error('Asset form not found in fillForm');
+                return;
+            }
+
+            console.log('Filling form for asset ID:', assetId);
+            fetch(`/get_asset/${assetId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched data:', data);
+                    
+                    // Điền dữ liệu vào các trường
+                    form.querySelector('input[name="ma_tai_san"]').value = data.ma_tai_san || '';
+                    form.querySelector('input[name="ten_tai_san"]').value = data.ten_tai_san || '';
+                    form.querySelector('input[name="ngay_vao_so"]').value = data.ngay_vao_so || '';
+                    
+                    const selectStatus = form.querySelector('select[name="trang_thai"]');
+                    if (selectStatus) {
+                        selectStatus.value = data.trang_thai || '';
+                        console.log('Select value set to:', selectStatus.value);
+                    }
+
+                    form.querySelector('input[name="serial"]').value = data.serial || '';
+                    form.querySelector('input[name="gia_tri"]').value = data.gia_tri || '';
+                    form.querySelector('input[name="ngay_bao_tri"]').value = data.ngay_bao_tri || '';
+                    form.querySelector('input[name="hang_sx"]').value = data.hang_sx || '';
+                    form.querySelector('input[name="bo_phan"]').value = data.bo_phan || '';
+                    form.querySelector('input[name="nguoi_su_dung"]').value = data.nguoi_su_dung || '';
+                    form.querySelector('input[name="vi_tri"]').value = data.vi_tri || '';
+                    form.querySelector('textarea[name="ghi_chu"]').value = data.ghi_chu || '';
+                    
+                    // Xử lý ảnh preview
+                    const previewImg = document.getElementById('preview');
+                    if (previewImg) {
+                        previewImg.src = data.image_path || '';
+                    }
+
+                    // Thiết lập trạng thái Chỉnh sửa (Update)
+                    const updateBtn = document.getElementById('update-btn');
+                    const addBtn = document.getElementById('add-btn');
+
+                    if (updateBtn) {
+                        updateBtn.style.display = 'inline-block';
+                        console.log('Update button displayed');
+                    }
+                    if (addBtn) {
+                        addBtn.style.display = 'none';  // 👈 Ẩn nút Thêm mới khi chọn record
+                    }
+
+                    form.setAttribute('data-editing-id', assetId);
+                })
+                .catch(error => console.error('Error fetching asset:', error));
+        }
+
+        // 2. Hàm xem trước ảnh (Preview Image)
+        // Lưu ý: Hàm này cần được gọi từ sự kiện onChange của input file
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const previewImg = document.getElementById('preview');
+                if (previewImg) {
+                    previewImg.src = reader.result;
+                }
+            };
+            if (event.target.files && event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        // --- Xử lý sự kiện sau khi DOM đã tải xong ---
+
         document.addEventListener('DOMContentLoaded', function() {
+            
+            // --- 1. Xử lý click vào bảng để điền form ---
             const table = document.getElementById('asset-table');
             if (table) {
                 table.addEventListener('click', function(e) {
-                    if (e.target.tagName !== 'A' && e.target.tagName !== 'SELECT') { // Loại bỏ link và select
+                    // Loại bỏ link và select để tránh kích hoạt sự kiện click ngoài ý muốn
+                    if (e.target.tagName !== 'A' && e.target.tagName !== 'SELECT' && e.target.type !== 'checkbox') {
                         const row = e.target.closest('tr');
                         if (row) {
                             const assetId = row.getAttribute('data-id');
-                            console.log('Clicked row, asset ID:', assetId);
-                            fillForm(assetId);
+                            if (assetId) {
+                                console.log('Clicked row, asset ID:', assetId);
+                                fillForm(assetId);
+                            }
                         }
                     }
                 });
@@ -263,66 +356,18 @@
                 console.error('Asset table not found');
             }
 
-            function fillForm(assetId) {
-                console.log('Filling form for asset ID:', assetId);
-                fetch(`/get_asset/${assetId}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Fetched data:', data);
-                        document.querySelector('input[name="ma_tai_san"]').value = data.ma_tai_san || '';
-                        document.querySelector('input[name="ten_tai_san"]').value = data.ten_tai_san || '';
-                        document.querySelector('input[name="ngay_vao_so"]').value = data.ngay_vao_so || '';
-                        const select = document.querySelector('select[name="trang_thai"]');
-                        select.value = data.trang_thai || '';
-                        console.log('Select value set to:', select.value);
-                        document.querySelector('input[name="serial"]').value = data.serial || '';
-                        document.querySelector('input[name="gia_tri"]').value = data.gia_tri || '';
-                        document.querySelector('input[name="ngay_bao_tri"]').value = data.ngay_bao_tri || '';
-                        document.querySelector('input[name="hang_sx"]').value = data.hang_sx || '';
-                        document.querySelector('input[name="bo_phan"]').value = data.bo_phan || '';
-                        document.querySelector('input[name="nguoi_su_dung"]').value = data.nguoi_su_dung || '';
-                        document.querySelector('input[name="vi_tri"]').value = data.vi_tri || '';
-                        document.querySelector('textarea[name="ghi_chu"]').value = data.ghi_chu || '';
-                        if (data.image_path) {
-                            document.getElementById('preview').src = data.image_path;
-                        } else {
-                            document.getElementById('preview').src = '';
-                        }
-                        const updateBtn = document.getElementById('update-btn');
-                        if (updateBtn) {
-                            updateBtn.style.display = 'inline-block';
-                            console.log('Update button displayed');
-                        } else {
-                            console.error('Update button not found');
-                        }
-                        document.getElementById('asset-form').setAttribute('data-editing-id', assetId);
-                    })
-                    .catch(error => console.error('Error fetching asset:', error));
-            }
-        });
-
-        // Xử lý preview ảnh
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                document.getElementById('preview').src = reader.result;
-            };
-            reader.readAsDataURL(event.target.files[0]);
-        }
-
-        // Xử lý form submit (Thêm mới hoặc Cập nhật)
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('asset-form');
-            if (form) {
-                form.addEventListener('submit', function(e) {
+            // --- 2. Xử lý form cập nhật/thêm mới (asset-form) ---
+            const assetForm = document.getElementById('asset-form');
+            if (assetForm) {
+                assetForm.addEventListener('submit', function(e) {
                     const editingId = this.getAttribute('data-editing-id');
                     console.log('Submitting form, editingId:', editingId, 'Form data:', Object.fromEntries(new FormData(this)));
+                    
                     if (editingId) {
+                        // Xử lý Cập nhật (Update)
                         e.preventDefault();
                         const formData = new FormData(this);
+                        
                         fetch(`/update_asset/${editingId}`, {
                             method: 'POST',
                             body: formData
@@ -338,68 +383,83 @@
                         })
                         .catch(error => console.error('Error updating asset:', error));
                     } else {
+                        // Xử lý Thêm mới (Create) - Form sẽ submit bình thường nếu không có e.preventDefault()
                         console.log('Submitting new asset');
                     }
                 });
-                // Gọi fillForm khi submit search
-                const filterForm = document.querySelector('form[action="/filter"]');
-                if (filterForm) {
-                    filterForm.addEventListener('submit', function(e) {
-                        const searchValue = document.querySelector('input[name="search"]').value;
-                        if (searchValue) {
-                            e.preventDefault();
-                            fetch(`/search_asset?search=${encodeURIComponent(searchValue)}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data && data.id) {
-                                        fillForm(data.id);
-                                    } else {
-                                        console.log('No asset found for search:', searchValue);
-                                    }
-                                })
-                                .catch(error => console.error('Error searching asset:', error));
-                        }
-                    });
-                } else {
-                    console.error('Filter form not found');
-                }
             } else {
                 console.error('Asset form not found');
             }
-        });
-        
-        let selectedIds = JSON.parse(localStorage.getItem('selectedIds') || '[]');
-        let selectAllGlobal = false;
-
-        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 4. Xử lý nút Export Excel và Checkbox chọn tất cả ---
             const exportBtn = document.getElementById('export-btn');
             const globalCheckbox = document.getElementById('select-all-global');
 
-            globalCheckbox.addEventListener('change', () => {
-                selectAllGlobal = globalCheckbox.checked;
-                localStorage.setItem('selectAllGlobal', selectAllGlobal);
-                if (selectAllGlobal) {
-                    alert("Bạn đã chọn tất cả tài sản (mọi trang).");
-                }
-            });
+            if (globalCheckbox) {
+                // Khôi phục trạng thái
+                globalCheckbox.checked = selectAllGlobal;
 
-            exportBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+                globalCheckbox.addEventListener('change', () => {
+                    selectAllGlobal = globalCheckbox.checked;
+                    localStorage.setItem('selectAllGlobal', selectAllGlobal);
+                    if (selectAllGlobal) {
+                        alert("Bạn đã chọn tất cả tài sản (mọi trang).");
+                    } else {
+                        alert("Đã hủy chọn tất cả tài sản.");
+                    }
+                });
+            }
 
-                if (!selectAllGlobal && selectedIds.length === 0) {
-                    alert("Vui lòng chọn ít nhất 1 tài sản để xuất Excel!");
-                    return;
-                }
+            if (exportBtn) {
+                exportBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
 
-                if (selectAllGlobal) {
-                    // Xuất toàn bộ
-                    window.location.href = "/export_excel?select_all=true";
-                } else {
-                    // Xuất theo ID
-                    const params = selectedIds.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
-                    window.location.href = `/export_excel?${params}`;
-                }
-            });
+                    if (!selectAllGlobal && selectedIds.length === 0) {
+                        alert("Vui lòng chọn ít nhất 1 tài sản để xuất Excel!");
+                        return;
+                    }
+
+                    if (selectAllGlobal) {
+                        // Xuất toàn bộ
+                        window.location.href = "/export_excel?select_all=true";
+                    } else {
+                        // Xuất theo ID
+                        const params = selectedIds.map(id => `ids[]=${encodeURIComponent(id)}`).join('&');
+                        window.location.href = `/export_excel?${params}`;
+                    }
+                });
+            }
+            
+            // --- 5. Nút Reset form ---
+            const resetBtn = document.getElementById('reset-btn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    const form = document.getElementById('asset-form');
+                    if (!form) return;
+
+                    // Xóa toàn bộ dữ liệu input, select, textarea
+                    form.reset();
+
+                    // Xóa id đang chỉnh sửa
+                    form.removeAttribute('data-editing-id');
+
+                    // Ẩn nút cập nhật, hiện nút thêm mới
+                    const updateBtn = document.getElementById('update-btn');
+                    const addBtn = document.getElementById('add-btn');
+                    if (updateBtn && addBtn) {
+                        updateBtn.style.display = 'none';
+                        addBtn.style.display = 'inline-block';
+                    }
+
+                    // Xóa ảnh preview (nếu có)
+                    const previewImg = document.getElementById('preview');
+                    if (previewImg) previewImg.src = '';
+
+                    console.log('Form reset hoàn tất.');
+                });
+            } else {
+                console.error('Reset button not found');
+            }
         });
     </script>
 {% endblock %}
