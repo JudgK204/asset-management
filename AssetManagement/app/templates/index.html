@@ -376,15 +376,50 @@
                         .then(data => {
                             if (data.success) {
                                 alert('Cập nhật thành công!');
-                                location.reload();
+                                
+                                // ✅ Giữ nguyên dữ liệu đang có trên form
+                                const form = document.getElementById('asset-form');
+                                form.removeAttribute('data-editing-id');
+                                
+                                // ✅ Ẩn nút Cập nhật, hiện lại nút Thêm mới
+                                const updateBtn = document.getElementById('update-btn');
+                                const addBtn = document.getElementById('add-btn');
+                                if (updateBtn && addBtn) {
+                                    updateBtn.style.display = 'none';
+                                    addBtn.style.display = 'inline-block';
+                                }
+
+                                // ✅ Cập nhật lại hàng trong bảng (nếu muốn)
+                                // Bạn có thể thêm logic cập nhật trực tiếp trên bảng mà không reload.
                             } else {
                                 alert('Cập nhật thất bại: ' + data.message);
                             }
                         })
                         .catch(error => console.error('Error updating asset:', error));
                     } else {
-                        // Xử lý Thêm mới (Create) - Form sẽ submit bình thường nếu không có e.preventDefault()
-                        console.log('Submitting new asset');
+                        // Xử lý Thêm mới (Create)
+                        e.preventDefault();
+                        const formData = new FormData(this);
+
+                        fetch('/add', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                alert('Thêm mới thành công!');
+                                location.reload();
+                            } else {
+                                // ⚠️ Báo lỗi nhưng KHÔNG reset form
+                                alert(data.message || 'Mã tài sản đã tồn tại!');
+                                console.warn('Duplicate asset detected, form data retained.');
+                            }
+                        })
+                        .catch(error => console.error('Error adding asset:', error));
                     }
                 });
             } else {

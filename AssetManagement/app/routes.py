@@ -105,8 +105,7 @@ def add_asset():
     # ⚠️ Kiểm tra trùng mã tài sản
     existing_asset = Asset.query.filter_by(ma_tai_san=ma_tai_san).first()
     if existing_asset:
-        flash(f"Mã tài sản '{ma_tai_san}' đã tồn tại. Vui lòng nhập mã khác!", "error")
-        return redirect(url_for('index'))
+        return jsonify({'success': False, 'message': f"Mã tài sản '{ma_tai_san}' đã tồn tại!"})
 
     if image and image.filename:
         filename = f"{ma_tai_san}_{image.filename}"
@@ -133,8 +132,8 @@ def add_asset():
 
     db.session.add(new_asset)
     db.session.commit()
-    flash('Tài sản đã được thêm thành công!', 'success')
-    return redirect(url_for('index'))
+    return jsonify({'success': True, 'message': 'Tài sản đã được thêm thành công!'})
+    #return redirect(url_for('index'))
 
 @app.route('/delete/<int:id>')
 def delete_asset(id):
