@@ -16,3 +16,6 @@ db = SQLAlchemy(app)
 print("Importing routes...")
 from app import routes
 print("Routes imported successfully.")
+
+from .routes_consumable import consumable_bp
+app.register_blueprint(consumable_bp)

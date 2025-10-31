@@ -21,7 +21,8 @@
             }
         }
     </script>
-
+    <!-- Thêm vào <head> của base.html hoặc report_nhap.html -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <style>
         /* Sidebar chính */
         .sidebar {
@@ -119,14 +120,67 @@
     <div id="sidebar" class="sidebar">
         <div>
             <h2>🏢 Quản lý</h2>
-            <a href="{{ url_for('index') }}" class="active">📦 Quản lý tài sản</a>
-            <a href="#">📊 Dashboard</a>
-            <a href="#">🧾 Phiếu</a>
-        </div>
-        <div class="text-gray-400 text-sm text-center py-4 border-t border-gray-700">
-            © 2025 AssetManager
+
+            <!-- 🔽 Mục cha: Quản lý tài sản -->
+            <div class="relative">
+                <button onclick="toggleSubmenu('submenu-taisan')" 
+                        class="flex justify-between items-center w-full text-gray-100 font-semibold text-[15px] px-5 py-2.5 hover:bg-gray-700 transition">
+                    <span class="flex items-center gap-2">
+                        📦 <span>Quản lý tài sản</span>
+                    </span>
+                    <span id="arrow-taisan" class="transition-transform">▼</span>
+                </button>
+
+                <!-- 🔸 Menu con: Quản lý tài sản -->
+                <div id="submenu-taisan" class="hidden flex flex-col ml-4 mt-1">
+                    <a href="{{ url_for('index') }}" 
+                    class="text-gray-300 text-sm px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition {% if request.endpoint == 'index' %}bg-gray-700 text-white{% endif %}">
+                        🖥️ Tài sản cố định
+                    </a>
+
+                    <!-- 🔽 Menu cha con: Tài sản tiêu hao -->
+                    <div class="relative">
+                        <button onclick="toggleSubmenu('submenu-tieuhao')" 
+                                class="flex justify-between items-center w-full text-gray-300 text-sm px-4 py-2 rounded hover:bg-gray-700 transition submenu-toggle">
+                            <span class="flex items-center gap-2">
+                                🧾 <span>Tài sản tiêu hao</span>
+                            </span>
+                            <span id="arrow-tieuhao" class="transition-transform">▼</span>
+                        </button>
+
+                        <!-- 🔸 Menu con: Tài sản tiêu hao -->
+                        <div id="submenu-tieuhao" class="hidden flex flex-col ml-4 mt-1">
+                            <a href="{{ url_for('consumable.consumable_index') }}"
+                            class="text-gray-400 text-xs px-4 py-1.5 rounded hover:bg-gray-700 hover:text-white transition {% if request.endpoint == 'consumable.consumable_index' %}bg-gray-700 text-white{% endif %}">
+                                📋 Danh sách vật tư
+                            </a>
+                            <a href="{{ url_for('consumable.consumable_nhap') }}"
+                            class="text-gray-400 text-xs px-4 py-1.5 rounded hover:bg-gray-700 hover:text-white transition {% if request.endpoint == 'consumable.consumable_nhap' %}bg-gray-700 text-white{% endif %}">
+                                📥 Phiếu nhập
+                            </a>
+                            <a href="{{ url_for('consumable.consumable_xuat') }}"
+                            class="text-gray-400 text-xs px-4 py-1.5 rounded hover:bg-gray-700 hover:text-white transition {% if request.endpoint == 'consumable.consumable_xuat' %}bg-gray-700 text-white{% endif %}">
+                                📤 Phiếu xuất
+                            </a>
+                            <a href="{{ url_for('consumable.consumable_huy') }}"
+                            class="text-gray-400 text-xs px-4 py-1.5 rounded hover:bg-gray-700 hover:text-white transition {% if request.endpoint == 'consumable.consumable_huy' %}bg-gray-700 text-white{% endif %}">
+                                🗑️ Phiếu hủy
+                            </a>
+                            <a href="{{ url_for('consumable.transaction_history') }}" 
+                            class="text-gray-300 text-sm px-4 py-2 rounded hover:bg-gray-700 hover:text-white transition">
+                                📋 Lịch sử phiếu
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔹 Các mục khác -->
+            <a href="#" class="block px-5 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">📊 Dashboard</a>
+            <a href="#" class="block px-5 py-3 text-gray-300 hover:bg-gray-700 hover:text-white">🧾 Phiếu</a>
         </div>
     </div>
+
 
     <!-- ✅ CONTENT -->
     <div class="content">
@@ -143,6 +197,7 @@
 
     <!-- ✅ JS mở/đóng sidebar trên mobile -->
     <script>
+        // Toggle sidebar cho mobile
         const toggleBtn = document.getElementById('toggleBtn');
         const sidebar = document.getElementById('sidebar');
         if (toggleBtn) {
@@ -150,6 +205,38 @@
                 sidebar.classList.toggle('open');
             });
         }
+
+        // 🔽 Toggle menu con "Quản lý tài sản"
+        lucide.createIcons();
+
+        function toggleSubmenu() {
+            const submenu = document.getElementById('submenu');
+            const arrow = document.getElementById('submenuArrow');
+            submenu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+            submenu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+
+            // 💾 Lưu trạng thái menu vào localStorage
+            localStorage.setItem(id, submenu.classList.contains('hidden') ? 'closed' : 'open');
+        }
+
+        // 🔁 Khôi phục trạng thái menu khi load lại trang
+        document.addEventListener('DOMContentLoaded', function() {
+            ['submenu-taisan', 'submenu-tieuhao'].forEach(id => {
+                const submenu = document.getElementById(id);
+                const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+                const state = localStorage.getItem(id);
+                if (state === 'open' && submenu) {
+                    submenu.classList.remove('hidden');
+                    if (arrow) arrow.classList.add('rotate-180');
+                }
+            });
+        });
     </script>
 </body>
 </html>

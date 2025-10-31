@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6 text-gray-100">
+    <h1 class="text-xl font-semibold mb-4">📋 Lịch sử phiếu vật tư tiêu hao</h1>
+
+    <form method="GET" class="mb-4 flex gap-3">
+        <input type="text" name="search" placeholder="🔍 Tìm theo mã vật tư..." 
+               value="{{ request.args.get('search', '') }}"
+               class="px-3 py-2 rounded bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select name="type" class="px-3 py-2 rounded bg-gray-800 text-gray-200">
+            <option value="">-- Loại giao dịch --</option>
+            <option value="Nhập kho">Nhập kho</option>
+            <option value="Xuất kho">Xuất kho</option>
+            <option value="Hủy">Hủy</option>
+        </select>
+        <button type="submit" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Lọc</button>
+    </form>
+
+    <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+        <thead>
+            <tr class="bg-gray-700 text-left text-sm uppercase">
+                <th class="px-4 py-2">Ngày</th>
+                <th class="px-4 py-2">Số phiếu</th>
+                <th class="px-4 py-2">Loại GD</th>
+                <th class="px-4 py-2">Mã VT</th>
+                <th class="px-4 py-2">Tên VT</th>
+                <th class="px-4 py-2">SL</th>
+                <th class="px-4 py-2">Người TH</th>
+                <th class="px-4 py-2">Phòng ban</th>
+                <th class="px-4 py-2">Ghi chú</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in history %}
+            <tr class="border-t border-gray-700 hover:bg-gray-700/60">
+                <td class="px-4 py-2">{{ item.ngay_giao_dich.strftime('%d/%m/%Y') if item.ngay_giao_dich else '' }}</td>
+                <td class="px-4 py-2">{{ item.so_phieu }}</td>
+                <td class="px-4 py-2">{{ item.loai_giao_dich }}</td>
+                <td class="px-4 py-2">{{ item.ma_vat_tu }}</td>
+                <td class="px-4 py-2">{{ item.ten_vat_tu }}</td>
+                <td class="px-4 py-2">{{ item.so_luong }}</td>
+                <td class="px-4 py-2">{{ item.nguoi_thuc_hien }}</td>
+                <td class="px-4 py-2">{{ item.phong_ban }}</td>
+                <td class="px-4 py-2">{{ item.ghi_chu }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="text-center py-4 text-gray-400">Không có dữ liệu</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2">Phiếu nhập kho</h2>
+
+    <form id="import-form" enctype="multipart/form-data" class="space-y-6">
+        <!-- Thông tin chung -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-3">Thông tin chung</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Số phiếu</label>
+                    <input type="text" name="so_phieu" id="so_phieu" readonly
+                           class="w-full border rounded-md px-3 py-2 bg-gray-100 focus:ring-2 focus:ring-primary"
+                           value="{{ data.so_phieu if data and data.so_phieu else '' }}">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Ngày nhập</label>
+                    <input type="date" name="ngay_nhap"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.ngay_nhap if data and data.ngay_nhap else current_date }}">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Người nhập kho</label>
+                    <input type="text" name="nguoi_nhap_kho" placeholder="Nhập tên người nhập"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.nguoi_nhap if data and data.nguoi_nhap else '' }}">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Phòng ban người nhập</label>
+                    <input type="text" name="phong_ban_nguoi_nhap_kho" placeholder="Phòng ban"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.phong_ban_nhap if data and data.phong_ban_nhap else '' }}">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-600 text-sm mb-1">Ghi chú</label>
+                    <input type="text" name="ghi_chu" placeholder="Ghi chú bổ sung"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.ghi_chu if data and data.ghi_chu else '' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Chi tiết vật tư -->
+        <div class="border-t pt-6 mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold text-gray-700 flex items-center gap-2">
+                    <i class="fa-solid fa-box-open text-primary"></i> Chi tiết vật tư
+                </h3>
+            </div>
+
+            <div id="vat-tu-details" class="space-y-4">
+                {% if data and data.get('items') and data.get('items') is iterable %}
+                    {% for item in data.get('items') %}
+                    <div class="item-row bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+                        <div class="grid grid-cols-1 md:grid-cols-7 gap-3">
+                            <!-- Mã vật tư -->
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Mã vật tư</label>
+                                <input type="text" name="ma_vat_tu[]" readonly
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-100 focus:ring-2 focus:ring-primary"
+                                       value="{{ item.ma_vat_tu }}">
+                            </div>
+                            <!-- Loại vật tư -->
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Loại vật tư</label>
+                                <select name="loai_vat_tu[]"
+                                        class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary loai-select">
+                                    <option value="">-- Chọn loại --</option>
+                                    <option value="Văn phòng" {% if item.loai_vat_tu == 'Văn phòng' %}selected{% endif %}>Văn phòng</option>
+                                    <option value="Sản xuất" {% if item.loai_vat_tu == 'Sản xuất' %}selected{% endif %}>Sản xuất</option>
+                                    <option value="Sửa chữa" {% if item.loai_vat_tu == 'Sửa chữa' %}selected{% endif %}>Sửa chữa</option>
+                                </select>
+                            </div>
+                            <!-- Tên vật tư -->
+                            <div class="md:col-span-2">
+                                <label class="text-sm text-gray-600 font-medium">Tên vật tư</label>
+                                <input type="text" name="ten_vat_tu[]"
+                                       value="{{ item.ten_vat_tu or '' }}"
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <!-- Đơn vị tính -->
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Đơn vị tính</label>
+                                <input type="text" name="don_vi_tinh[]"
+                                       value="{{ item.don_vi_tinh or '' }}"
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <!-- Số lượng -->
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Số lượng</label>
+                                <input type="number" name="so_luong[]" min="1"
+                                       value="{{ item.so_luong or '1' }}"
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <!-- Lý do -->
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Lý do</label>
+                                <input type> 
+                                <input type="text" name="ly_do[]"
+                                       value="{{ item.ly_do or '' }}"
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <!-- Xóa -->
+                            <div class="md:col-span-1 flex items-end justify-end">
+                                <button type="button"
+                                        class="remove-row flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
+                                    <i class="fa-solid fa-trash-can"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Dòng trống mặc định -->
+                    <div class="item-row bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition">
+                        <div class="grid grid-cols-1 md:grid-cols-7 gap-3">
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Mã vật tư</label>
+                                <input type="text" name="ma_vat_tu[]" readonly
+                                       class="w-full mt-1 border rounded-lg px-3 py-2 bg-gray-100 focus:ring-2 focus:ring-primary"
+                                       value="">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Loại vật tư</label>
+                                <select name="loai_vat_tu[]" class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary loai-select">
+                                    <option value="">-- Chọn loại --</option>
+                                    <option value="Văn phòng">Văn phòng</option>
+                                    <option value="Sản xuất">Sản xuất</option>
+                                    <option value="Sửa chữa">Sửa chữa</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-sm text-gray-600 font-medium">Tên vật tư</label>
+                                <input type="text" name="ten_vat_tu[]" class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Đơn vị tính</label>
+                                <input type="text" name="don_vi_tinh[]" class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Số lượng</label>
+                                <input type="number" name="so_luong[]" min="1" value="1" class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="text-sm text-gray-600 font-medium">Lý do</label>
+                                <input type="text" name="ly_do[]" class="w-full mt-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div class="md:col-span-1 flex items-end justify-end">
+                                <button type="button" class="remove-row flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
+                                    <i class="fa-solid fa-trash-can"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 flex justify-start">
+                <button type="button" id="add-row"
+                        class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 shadow-sm transition">
+                    + Thêm dòng
+                </button>
+            </div>
+        </div>
+
+        <!-- Người giao -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-3">Thông tin người giao</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Người giao</label>
+                    <input type="text" name="nguoi_giao"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.nguoi_giao if data and data.nguoi_giao else '' }}">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Phòng ban người giao</label>
+                    <input type="text" name="phong_ban_nguoi_giao"
+                           class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-primary"
+                           value="{{ data.phong_ban_giao if data and data.phong_ban_giao else '' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="flex justify-end gap-3 pt-6 border-t mt-4">
+            <button type="reset" id="reset-btn"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-5 py-2 rounded-lg transition">
+                Làm mới
+            </button>
+            <button type="submit" id="add-btn"
+                    class="bg-primary hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg transition">
+                Preview
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const previewBtn = document.getElementById("add-btn");
+
+        previewBtn.addEventListener("click", e => {
+            e.preventDefault();
+            const items = [];
+            let hasValidRow = false;
+
+            document.querySelectorAll(".item-row").forEach(row => {
+                const loai = row.querySelector("[name='loai_vat_tu[]']").value;
+                if (loai) hasValidRow = true;
+
+                items.push({
+                    ma_vat_tu: row.querySelector("[name='ma_vat_tu[]']").value,
+                    loai_vat_tu: loai,
+                    ten_vat_tu: row.querySelector("[name='ten_vat_tu[]']").value,
+                    don_vi_tinh: row.querySelector("[name='don_vi_tinh[]']").value,
+                    so_luong: row.querySelector("[name='so_luong[]']").value || "1",
+                    ly_do: row.querySelector("[name='ly_do[]']").value
+                });
+            });
+
+            if (!hasValidRow) {
+                alert("Vui lòng chọn ít nhất 1 loại vật tư!");
+                return;
+            }
+
+            // TẠO FORM ẨN
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("consumable.consumable_nhap") }}';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'preview_data';
+            input.value = JSON.stringify({
+                so_phieu: document.getElementById("so_phieu").value,
+                ngay_nhap: document.querySelector("[name='ngay_nhap']").value,
+                nguoi_nhap_kho: document.querySelector("[name='nguoi_nhap_kho']").value,
+                phong_ban_nguoi_nhap_kho: document.querySelector("[name='phong_ban_nguoi_nhap_kho']").value,
+                ghi_chu: document.querySelector("[name='ghi_chu']").value,
+                nguoi_giao: document.querySelector("[name='nguoi_giao']").value,
+                phong_ban_nguoi_giao: document.querySelector("[name='phong_ban_nguoi_giao']").value,
+                items: items
+            });
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // THÊM DÒNG
+        document.getElementById("add-row").addEventListener("click", () => {
+            const template = document.querySelector(".item-row");
+            const clone = template.cloneNode(true);
+            clone.querySelectorAll("input, select").forEach(el => {
+                if (!el.name.includes("ma_vat_tu[]")) el.value = "";
+            });
+            document.getElementById("vat-tu-details").appendChild(clone);
+        });
+
+        // XÓA DÒNG
+        document.addEventListener("click", e => {
+            if (e.target.closest(".remove-row") && document.querySelectorAll(".item-row").length > 1) {
+                e.target.closest(".item-row").remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2">🗑️ Phiếu hủy vật tư</h2>
+
+    <form id="cancel-form" enctype="multipart/form-data" class="space-y-6">
+        <!-- Thông tin chung -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-3">Thông tin chung</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Số phiếu</label>
+                    <input type="text" id="so_phieu" readonly
+                        class="w-full border rounded-md px-3 py-2 bg-gray-100 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Ngày hủy</label>
+                    <input type="date" name="ngay_huy" value="{{ current_date }}"
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Người hủy</label>
+                    <input type="text" name="nguoi_huy" placeholder="Nhập tên người hủy"
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Phòng ban hủy</label>
+                    <input type="text" name="phong_ban_huy" placeholder="Phòng ban thực hiện hủy"
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-600 text-sm mb-1">Lý do hủy</label>
+                    <textarea name="ly_do" rows="2" placeholder="VD: Hết hạn sử dụng, hỏng, mất mát..."
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chi tiết vật tư -->
+        <div class="border-t pt-4">
+            <h3 class="text-lg font-semibold text-gray-600 mb-3">Chi tiết vật tư hủy</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Loại vật tư</label>
+                    <select name="loai_vat_tu" id="loai_vat_tu"
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                        <option value="">-- Chọn loại vật tư --</option>
+                        <option value="VP">Văn phòng</option>
+                        <option value="SX">Sản xuất</option>
+                        <option value="SC">Sửa chữa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Tên vật tư</label>
+                    <input type="text" name="ten_vat_tu" placeholder="VD: Bút bi, keo dán..."
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Đơn vị tính</label>
+                    <input type="text" name="don_vi_tinh" placeholder="Cái, hộp..."
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                    <label class="block text-gray-600 text-sm mb-1">Số lượng hủy</label>
+                    <input type="number" name="so_luong" min="1" value="1"
+                        class="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-red-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="flex justify-end gap-3 pt-6 border-t mt-4">
+            <button type="reset"
+                class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-5 py-2 rounded-lg transition">
+                Làm mới
+            </button>
+            <button type="submit"
+                class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg transition">
+                Xác nhận hủy
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date();
+    const code = `PH${today.getDate().toString().padStart(2, '0')}${(today.getMonth()+1)
+        .toString().padStart(2, '0')}${today.getFullYear()}0001`;
+    document.getElementById("so_phieu").value = code;
+});
+</script>
+{% endblock %}

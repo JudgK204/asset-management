@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md print:p-0 print:shadow-none">
+    <!-- Header với logo và thông tin công ty -->
+    <div class="flex items-center justify-between border-b pb-2 mb-6 print:mb-4">
+        <!-- Logo bên trái -->
+        <div class="flex-shrink-0">
+            <img src="{{ url_for('static', filename='images/logo_ways.jpg') }}" 
+                 alt="Vietnam Ways Logo" class="h-20 w-auto object-contain">
+        </div>
+
+        <!-- Thông tin công ty bên phải -->
+        <div class="flex-1 text-left ml-4">
+            <h1 class="text-lg font-bold text-gray-800 leading-tight">
+                VIETNAM WAYS TECHNOLOGY COMPANY LIMITED
+            </h1>
+            <p class="text-sm text-gray-700 leading-snug">
+                Factory B1, B2, B3, and B4, Lot CN4G, DEEP C-2B Industrial Zone, Dinh Vu-Cat Hai Economic Zone<br>
+                Dong Hai Ward, Hai Phong City, Vietnam
+            </p>
+        </div>
+    </div>
+
+    <!-- Tiêu đề phiếu -->
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-4 border-b pb-2">PHIẾU NHẬP KHO/GOODS RECEIPT NOTE</h2>
+
+    <!-- Thông tin chung -->
+    <div class="grid grid-cols-2 gap-4 mb-6 text-sm text-gray-700">
+        <div>
+            <p><strong>Số phiếu No:</strong> {{ data.so_phieu }}</p>
+            <p><strong>Người giao/Deliverer:</strong> {{ data.nguoi_giao or 'N/A' }}</p>
+            <p><strong>Phòng ban/Dept:</strong> {{ data.phong_ban_giao or 'N/A' }}</p>
+        </div>
+        <div>
+            <p><strong>Ngày/Date:</strong> {{ data.ngay_nhap }}</p>
+            <p><strong>Người nhận/Recipient:</strong> {{ data.nguoi_nhap or 'N/A' }}</p>
+            <p><strong>Phòng ban/Dept:</strong> {{ data.phong_ban_nhap or 'N/A' }}</p>
+        </div>
+    </div>
+
+    <!-- Ghi chú -->
+    {% if data.ghi_chu %}
+    <div class="mb-6 text-sm text-gray-700">
+        <p><strong>Ghi chú/Note:</strong> {{ data.ghi_chu }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Bảng chi tiết vật tư -->
+    <table class="w-full text-sm text-gray-700 border-collapse mb-6">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="border p-2 text-left">STT/#</th>
+                <th class="border p-2 text-left">Mã vật tư/Material Code</th>
+                <th class="border p-2 text-left">Tên vật tư/Material name</th>
+                <th class="border p-2 text-left">ĐVT/Unit</th>
+                <th class="border p-2 text-left">Số lượng/Quantity</th>
+                <th class="border p-2 text-left">Lý do/Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data.get('items') %}
+            <tr>
+                <td class="border p-2 text-center">{{ loop.index }}</td>
+                <td class="border p-2 font-mono">{{ item.ma_vat_tu }}</td>
+                <td class="border p-2">{{ item.ten_vat_tu }}</td>
+                <td class="border p-2 text-center">{{ item.don_vi_tinh }}</td>
+                <td class="border p-2 text-center">{{ item.so_luong }}</td>
+                <td class="border p-2">{{ item.ly_do }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Chữ ký -->
+    <div class="grid grid-cols-3 gap-4 text-sm text-gray-700 mt-8 border-t pt-6">
+        <div class="text-center">
+            <p><strong>Trưởng bộ phận/</strong><br>Department Head</p>
+            <br><br>
+            <p class="text-xs italic">(Ký, ghi rõ họ tên)</p>
+        </div>
+        <div class="text-center">
+            <p><strong>Người giao/</strong><br>Deliverer</p>
+            <br><br>
+            <p class="text-xs italic">(Ký, ghi rõ họ tên)</p>
+        </div>
+        <div class="text-center">
+            <p><strong>Người nhận/</strong><br>Receipt</p>
+            <br><br>
+            <p class="text-xs italic">(Ký, ghi rõ họ tên)</p>
+        </div>
+    </div>
+
+    <div class="flex justify-center gap-4 mt-8 print:hidden">
+        <a href="{{ url_for('consumable.consumable_nhap') }}"
+        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+            Sửa lại
+        </a>
+
+        <!-- HTMX: GỬI POST, HIỂN THỊ KẾT QUẢ, KHÔNG RELOAD -->
+        <button hx-post="{{ url_for('consumable.consumable_nhap_confirm') }}"
+                hx-include="[name='confirmed']"
+                hx-target="#result"
+                hx-swap="innerHTML"
+                hx-indicator="#loading"
+                class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+            Xác nhận nhập kho
+        </button>
+    </div>
+
+    <!-- Khu vực hiển thị kết quả -->
+    <div id="result" class="mt-4"></div>
+
+    <!-- Loading spinner -->
+    <div id="loading" class="hidden text-center mt-4">
+        <span class="inline-block animate-spin w-6 h-6 border-4 border-green-500 border-t-transparent rounded-full"></span>
+        <span class="ml-2">Đang lưu...</span>
+    </div>
+
+    <!-- Gửi confirmed=1 -->
+    <input type="hidden" name="confirmed" value="1">
+</div>
+
+<style>
+    @media print {
+        body { margin: 0; padding: 0; }
+        .print\:p-0 { padding: 0 !important; }
+        .print\:mb-4 { margin-bottom: 1rem !important; }
+        .print\:shadow-none { box-shadow: none !important; }
+        .print\:hidden { display: none !important; }
+    }
+    .font-mono { font-family: 'Courier New', monospace; }
+</style>
+{% endblock %}
